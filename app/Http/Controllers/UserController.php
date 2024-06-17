@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+
+    const ROLE_PASSENGER = 'passenger';
+    const ROLE_DRIVER = 'driver';
+
     // Register a new user
     public function register(Request $request)
     {
@@ -16,14 +20,16 @@ class UserController extends Controller
         $fields = $request->validate([
             'name' => 'required|string',
             'email' => 'required|string|unique:users,email',
-            'password' => 'required|string|confirmed'
+            'password' => 'required|string|confirmed',
+            'role' => 'required|string|in:driver,passenger'
         ]);
 
         // Create a new user
         $user = User::create([
             'name' => $fields['name'],
             'email' => $fields['email'],
-            'password' => bcrypt($fields['password'])
+            'password' => bcrypt($fields['password']),
+            'role' => $fields['role'] === self::ROLE_DRIVER ? self::ROLE_DRIVER : self::ROLE_PASSENGER
         ]);
 
         // Generate a token for the user
@@ -84,5 +90,15 @@ class UserController extends Controller
 
         // Return the response
         return response($response, 200);
+    }
+
+    public function isDriver()
+    {
+        return $this->role === self::ROLE_DRIVER;
+    }
+
+    public function isPassenger()
+    {
+        return $this->role === self::ROLE_PASSENGER;
     }
 }
